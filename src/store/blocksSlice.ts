@@ -1,58 +1,60 @@
-import { type PayloadAction, createSlice } from '@reduxjs/toolkit'
+import type { PayloadAction } from '@reduxjs/toolkit'
+import { createSlice } from '@reduxjs/toolkit'
 import type { Block } from '../types'
 
-interface UpdateContentPayload {
-  index: number
-  content: string
+function loadBlocksFromLocalStorage(): Block[] {
+  const savedBlocks = localStorage.getItem('blocks')
+  return savedBlocks ? JSON.parse(savedBlocks) : []
 }
 
-const initialState: Block[] = []
+interface BlocksState {
+  blocks: Block[]
+}
 
-export const blocksSlice = createSlice({
+const initialState: BlocksState = {
+  blocks: loadBlocksFromLocalStorage(),
+}
+
+const blocksSlice = createSlice({
   name: 'blocks',
   initialState,
   reducers: {
-    addBlock: (state, action: PayloadAction<Block>) => {
-      state.push(action.payload)
+    updateBlockContent(state, action: PayloadAction<{ index: number, content: string }>) {
+      state.blocks[action.payload.index].content = action.payload.content
     },
-    removeBlock: (state, action: PayloadAction<number>) => {
-      return state.filter((_, index) => index !== action.payload)
+    addBlock(state, action: PayloadAction<Block>) {
+      state.blocks.push(action.payload)
     },
-    moveBlockUp: (state, action: PayloadAction<number>) => {
+    moveBlockUp(state: BlocksState, action: PayloadAction<number>) {
       const index = action.payload
       if (index > 0) {
-        const temp = state[index - 1]
-        state[index - 1] = state[index]
-        state[index] = temp
+        [state.blocks[index - 1], state.blocks[index]] = [state.blocks[index], state.blocks[index - 1]]
       }
     },
-    moveBlockDown: (state, action: PayloadAction<number>) => {
+
+    moveBlockDown(state: BlocksState, action: PayloadAction<number>) {
       const index = action.payload
-      if (index < state.length - 1) {
-        const temp = state[index + 1]
-        state[index + 1] = state[index]
-        state[index] = temp
+      if (index < state.blocks.length - 1) {
+        [state.blocks[index + 1], state.blocks[index]] = [state.blocks[index], state.blocks[index + 1]]
       }
     },
-    cloneBlock: (state, action: PayloadAction<number>) => {
-      state.splice(action.payload + 1, 0, { ...state[action.payload] })
+    cloneBlock(state, action: PayloadAction<number>) {
+      const block = state.blocks[action.payload]
+      state.blocks.splice(action.payload + 1, 0, { ...block })
     },
-    updateBlockContent: (state, action: PayloadAction<UpdateContentPayload>) => {
-      const { index, content } = action.payload
-      if (state[index]) {
-        state[index].content = content
-      }
+    removeBlock(state, action: PayloadAction<number>) {
+      state.blocks.splice(action.payload, 1)
     },
   },
 })
 
 export const {
+  updateBlockContent,
   addBlock,
-  removeBlock,
   moveBlockUp,
   moveBlockDown,
   cloneBlock,
-  updateBlockContent,
+  removeBlock,
 } = blocksSlice.actions
 
 export default blocksSlice.reducer
