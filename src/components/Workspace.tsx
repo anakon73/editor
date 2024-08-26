@@ -37,6 +37,22 @@ const Workspace: React.FC = () => {
     localStorage.setItem('blocks', JSON.stringify(blocks))
   }, [blocks])
 
+  const handleMoveBlock = (direction: 'up' | 'down') => {
+    if (selectedBlockIndex !== null) {
+      const index = selectedBlockIndex
+      if (direction === 'up' && index > 0) {
+        dispatch(moveBlockUp(index))
+        const newIndex = index - 1
+        setTimeout(() => setSelectedBlockIndex(newIndex), 0)
+      }
+      else if (direction === 'down' && index < blocks.length - 1) {
+        dispatch(moveBlockDown(index))
+        const newIndex = index + 1
+        setTimeout(() => setSelectedBlockIndex(newIndex), 0)
+      }
+    }
+  }
+
   const icon = (type: Block['type']) => {
     switch (type) {
       case 'Image':
@@ -67,10 +83,10 @@ const Workspace: React.FC = () => {
           { selectedBlockIndex === index && (
             <div className="absolute -top-[27px] right-2.5 flex gap-1.5">
               <div className="flex gap-3 rounded-t bg-blue-500 p-1.5">
-                <button onClick={() => dispatch(moveBlockDown(index))}>
+                <button onClick={() => handleMoveBlock('down')}>
                   <img src={ArrowDown} alt="arrow down icon" />
                 </button>
-                <button onClick={() => dispatch(moveBlockUp(index))}>
+                <button onClick={() => handleMoveBlock('up')}>
                   <img src={ArrowTop} alt="arrow top icon" />
                 </button>
               </div>
